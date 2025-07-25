@@ -19,6 +19,10 @@ function App() {
   };
 
   const addTask = async () => {
+    if (!todoValue) {
+      alert("할 일을 입력해주세요.");
+      return;
+    }
     try {
       const response = await api.post("/tasks", {
         task: todoValue,
