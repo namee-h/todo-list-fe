@@ -11,11 +11,16 @@ import api from "./utils/api";
 
 function App() {
   const [todoList, setTodoList] = useState([]);
-  const [todoValue, setTodoValue] = useState([]);
+  const [todoValue, setTodoValue] = useState("");
 
   const getTasks = async () => {
     const response = await api.get("/tasks");
     setTodoList(response.data.data);
+  };
+  const addEnter = (e) => {
+    if (e.key === "Enter") {
+      addTask();
+    }
   };
 
   const addTask = async () => {
@@ -41,6 +46,9 @@ function App() {
   };
 
   const deleteItem = async (id) => {
+    if (!window.confirm("정말 삭제하시겠습니까?")) {
+      return;
+    }
     try {
       const response = await api.delete(`/tasks/${id}`);
       if (response.status === 200) {
@@ -86,6 +94,7 @@ function App() {
             className="input-box"
             value={todoValue}
             onChange={(e) => setTodoValue(e.target.value)}
+            onKeyDown={(e) => addEnter(e)}
           />
         </Col>
         <Col xs={12} sm={2}>
