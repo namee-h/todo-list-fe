@@ -4,6 +4,7 @@ import { styled } from "@mui/system";
 import { useState } from "react";
 import api from "../utils/api";
 import { useNavigate } from "react-router-dom";
+import useAuthStore from "../stores/authStore";
 
 const RegisterPage = () => {
   const [name, setName] = useState("");
@@ -12,7 +13,7 @@ const RegisterPage = () => {
   const [secPassword, setSecPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
+  const user = useAuthStore((state) => state.user);
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -22,6 +23,8 @@ const RegisterPage = () => {
       const response = await api.post("/user", { name, email, password });
       console.log("Registration successful:", response.data);
       if (response.data.status === "success") {
+        setError("");
+        alert("회원가입이 완료되었습니다.");
         navigate("/login");
       } else {
         throw new Error(response.data.error || "Registration failed");
@@ -30,6 +33,9 @@ const RegisterPage = () => {
       setError(error.message);
     }
   };
+  if (user) {
+    navigate("/");
+  }
   return (
     <Container
       maxWidth="xs"

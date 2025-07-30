@@ -1,5 +1,4 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -7,33 +6,47 @@ import {
   Typography,
   Link as MuiLink,
 } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../utils/api";
-import { useNavigate } from "react-router-dom";
+import useAuthStore from "../stores/authStore";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [user, setUser] = useState(null);
+
   const navigate = useNavigate();
+  const setToken = useAuthStore((state) => state.setToken);
+  const setUser = useAuthStore((state) => state.setUser);
+  const user = useAuthStore((state) => state.user);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const response = await api.post("/user/login", { email, password });
+
       if (response.status === 200) {
-        setUser(response.data.user);
-        sessionStorage.setItem("token", response.data.token);
-        api.defaults.headers["Authorization"] = `Bearer ${response.data.token}`;
+        const { token, user } = response.data;
+
+        // 상태 저장
+        setToken(token);
+        setUser(user);
+
         setError("");
         navigate("/");
+      } else {
+        throw new Error(response.data.message || "Login failed");
       }
-      console.log("Login successful:", response);
-      throw new Error(response.data.message || "Login failed");
     } catch (error) {
-      setError(error.message);
+      setError(
+        error.response?.data?.message || error.message || "Login failed"
+      );
     }
   };
+  if (user) {
+    navigate("/");
+  }
+
   return (
     <Box
       display="flex"
@@ -62,6 +75,7 @@ function LoginPage() {
           label="Email address"
           placeholder="Enter email"
           margin="normal"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
@@ -71,6 +85,7 @@ function LoginPage() {
           label="Password"
           placeholder="Password"
           margin="normal"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
@@ -79,6 +94,7 @@ function LoginPage() {
             {error}
           </Typography>
         )}
+
         <Box mt={3}>
           <Button
             type="submit"
